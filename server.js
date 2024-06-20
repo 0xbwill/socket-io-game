@@ -16,7 +16,7 @@ app.use(express.static('public'));
 
 // Route pour la page d'accueil
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'homepage.html'));
 });
 
 app.get('/create', (req, res) => {
