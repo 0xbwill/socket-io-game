@@ -1,0 +1,65 @@
+<!-- public/game.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pierre Papier Ciseaux Puit - Partie</title>
+</head>
+<body>
+  <h1>Pierre Papier Ciseaux Puit - Partie</h1>
+  <div id="game">
+    <input type="text" id="username" placeholder="Votre pseudo">
+    <button id="joinGame">Rejoindre la partie</button>
+  </div>
+  <div id="play" style="display:none;">
+    <h2 id="players"></h2>
+    <button class="choice" data-choice="pierre">Pierre</button>
+    <button class="choice" data-choice="papier">Papier</button>
+    <button class="choice" data-choice="ciseaux">Ciseaux</button>
+    <button class="choice" data-choice="puit">Puit</button>
+  </div>
+  <div id="result" style="display:none;">
+    <h2 id="resultMessage"></h2>
+  </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const gameDiv = document.getElementById('game');
+    const playDiv = document.getElementById('play');
+    const resultDiv = document.getElementById('result');
+    const usernameInput = document.getElementById('username');
+    const gameId = window.location.pathname.split('/').pop();
+
+    document.getElementById('joinGame').addEventListener('click', () => {
+      const username = usernameInput.value;
+      if (username) {
+        socket.emit('joinGame', { gameId, username });
+      }
+    });
+
+    socket.on('startGame', ({ players }) => {
+      gameDiv.style.display = 'none';
+      playDiv.style.display = 'block';
+      document.getElementById('players').textContent = `Joueurs: ${players.map(p => p.username).join(' vs ')}`;
+    });
+
+    document.querySelectorAll('.choice').forEach(button => {
+      button.addEventListener('click', () => {
+        const choice = button.getAttribute('data-choice');
+        socket.emit('makeChoice', { gameId, choice });
+      });
+    });
+
+    socket.on('gameResult', ({ result, choices }) => {
+      playDiv.style.display = 'none';
+      resultDiv.style.display = 'block';
+      document.getElementById('resultMessage').textContent = `Résultat: ${result}. Choix: ${JSON.stringify(choices)}`;
+    });
+
+    socket.on('error', (message) => {
+      alert(message);
+    });
+  </script>
+</body>
+</html>
